@@ -1,0 +1,34 @@
+<textarea id="codes"></textarea><a href="#" id="addcode">add code</a>
+<script type="text/javascript" src="{{STATIC_URL}}jquery.min.js"></script>
+<script>
+$(document).ready(function() {	
+	function getlog() {
+		$.get("{% url 'getlog' %}").done(function(data) {
+			// data has 3 possibilities
+			// data = 'nocontent' ---> No sub_id in request.session
+			// data ='' --> didn't saved Code.sub_result. ie the celery not finished the task
+			// data = 'small one done! end-start:seconds!' --> celery finished the task
+			//console.log(data);
+			alert(data);
+			if (data=='nocontent') {stopRefresh()} 				
+		});
+	}
+	// stop ajax if there is no
+	function stopRefresh(){
+		clearInterval(refreshInterval);
+	}
+
+	// Ajax request for every 5 Seconds to check the 
+	// sub_result field in the database for recently 
+	// addedcode ie --> request.session['sub_id'].
+	var refreshInterval = setInterval(getlog, 5000);
+	$('#addcode').click(function(e){
+		e.preventDefault();	
+		$.get("{% url 'addcode' %}",{codes: $("#codes").val()})
+		.done(function(data) {
+			console.log(data);			
+			refreshInterval;
+		});
+	});
+});
+</script>
